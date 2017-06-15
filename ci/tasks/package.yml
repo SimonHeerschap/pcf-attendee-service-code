@@ -9,6 +9,7 @@ image_resource:
 
 inputs:
 - name: attendee-service
+- name: attendee-service-source
 
 outputs:
 - name: package-output
