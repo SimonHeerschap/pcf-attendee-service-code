@@ -1,0 +1,30 @@
+---
+resources:
+- name: attendee-service
+  type: git
+  source:
+    uri: https://github.com/SimonHeerschap/pcf-attendee-service-code   #<----- REPLACE ME
+    branch: concourse_deployment
+
+- name: deploy-attendee-service
+  type: cf
+  source:
+    api: https://api.run.pivotal.io        #<----- REPLACE ME
+    username: {{cf-user}}
+    password: {{cf-password}}
+    organization: Pivotal-Education-Students    #<----- REPLACE ME
+    space: simon-sandbox         #<----- REPLACE ME
+    skip_cert_check: true
+
+jobs:
+- name: build
+  public: true
+  plan:
+  - get: attendee-service
+  - task: package
+    file: attendee-service/ci/tasks/package.yml
+  - put: deploy-attendee-service
+    params:
+      manifest: attendee-service/manifest.yml
+      path: package-output/attendee-service.jar
+
