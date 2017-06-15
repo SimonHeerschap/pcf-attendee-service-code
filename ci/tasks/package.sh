@@ -18,3 +18,4 @@ find attendee-service-source/target -type f -name *.jar -exec cp "{}" package-ou
 
 echo "Done packaging"
 exit 0
+
