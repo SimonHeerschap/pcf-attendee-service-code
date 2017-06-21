@@ -56,7 +56,7 @@ jobs:
   - put: PWS
     params:
       manifest: app-manifest-output/manifest.yml
-      path: .
+      path: attendee-service-source
 
 - name: smoke-deploy-test
   serial: true
