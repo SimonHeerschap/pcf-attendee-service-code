@@ -14,4 +14,4 @@ outputs:
 - name: current-app-info
 
 run:
-  path: attendee-service-source/ci/tasks/current-app-get-info
+  path: attendee-service-source/ci/tasks/current-app-get-info.sh
