@@ -53,7 +53,7 @@ jobs:
       PWS_APP_SUFFIX: {{pws-app-suffix}}
   - put: PWS
     params:
-      manifest: app-manifest-output/manifest.yml
+      manifest: manifest.yml
       path: attendee-service-source
 
 - name: smoke-deploy-test
