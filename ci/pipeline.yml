@@ -39,7 +39,7 @@ jobs:
     trigger: true
     passed: [unit-test]
   - task: get-current-app-color
-    file: attendee-service-source/ci/tasks/get-current-app-color.yml
+    file: attendee-service-source/ci/tasks/current-app-get-info.yml
     params:
       PWS_APP_SUFFIX: {{pws-app-suffix}}
       PWS_API: {{pws-api}}
