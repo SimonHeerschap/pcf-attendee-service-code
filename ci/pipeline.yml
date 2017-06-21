@@ -1,49 +1,133 @@
----
+groups:
+- name: main
+  jobs:
+  - unit-test
+  - deploy-app
+  - smoke-deploy-test
+  - promote-new-version
+  - smoke-live-test
+
 resources:
 - name: attendee-service-source
   type: git
   source:
-    uri: https://github.com/pivotal-enablement/attendee-service
+    uri: https://github.com/SimonHeerschap/pcf-attendee-service-code.git
     branch: smoke_tests
-- name: deploy-attendee-service
+- name: PWS
   type: cf
   source:
-    api: api.run.pez.pivotal.io
+    api: api.run.pivotal.io
     username: {{cf-user}}
     password: {{cf-password}}
-    organization: pivot-twhitney
-    space: pal
+    organization: Pivotal-Education-Students
+    space: simon-sandbox
     skip_cert_check: true
 
 jobs:
-- name: test
+- name: unit-test
   public: true
   plan:
   - get: attendee-service-source
     trigger: true
-  - task: test
-    file: attendee-service-source/ci/tasks/test.yml
+  - task: unit_test
+    file: attendee-service-source/ci/tasks/unit-test.yml
 
-- name: deploy
+- name: deploy-app
   public: true
   plan:
   - get: attendee-service-source
     trigger: true
-    passed: [test]
-  - task: package
-    file: attendee-service-source/ci/tasks/package.yml
-  - put: deploy-attendee-service
+    passed: [unit-test]
+  - task: get-current-app-color
+    file: attendee-service-source/ci/tasks/get-current-app-color.yml
     params:
-      manifest: attendee-service-source/manifest.yml
-      path: package-output/attendee-service.jar
+      PWS_APP_SUFFIX: {{pws-app-suffix}}
+      PWS_API: {{pws-api}}
+      PWS_ORG: {{pws-organization}}
+      PWS_USER: {{deploy-username}}
+      PWS_PWD: {{deploy-password}}
+      PWS_SPACE: {{pws-space}}
+  - task: prepare-app-manifest
+    file: attendee-service-source/ci/tasks/app-manifest-prep.yml
+    params:
+      PWS_APP_SUFFIX: {{pws-app-suffix}}
+  - put: PWS
+    params:
+      manifest: app-manifest-output/manifest.yml
+      path: attendee-service-source
 
-- name: smoke_test
+- name: smoke-deploy-test
+  serial: true
   public: true
   plan:
   - get: attendee-service-source
     trigger: true
-    passed: [deploy]
-  - task: smoke_test
-    file: attendee-service-source/ci/tasks/smoke_test.yml
+    passed:
+      - deploy-app
+  - task: get-current-app-color
+    file: attendee-service-source/ci/tasks/current-app-get-info.yml
     params:
-      ATTENDEE_SERVICE_URL: https://attendee-service-clotty-megalopolis.cfapps.pez.pivotal.io 
+      PWS_APP_SUFFIX: {{pws-app-suffix}}
+      PWS_API: {{pws-api}}
+      PWS_ORG: {{pws-organization}}
+      PWS_USER: {{deploy-username}}
+      PWS_PWD: {{deploy-password}}
+      PWS_SPACE: {{pws-space}}
+  - task: run-smoke-tests
+    file: attendee-service-source/ci/tasks/smoke-test.yml
+    params:
+      ATTENDEE_SERVICE_URL: {{pwd-app-url}}
+      PWS_APP_SUFFIX: {{pws-app-suffix}}
+      PWS_APP_DOMAIN: {{pws-app-domain}}
+
+- name: promote-new-version
+  serial: true
+  public: true
+  plan:
+  - get: attendee-service-source
+    trigger: true
+    passed:
+      - smoke-deploy-test
+  - task: get-current-app-color
+    file: attendee-service-source/ci/tasks/current-app-get-info.yml
+    params:
+      PWS_APP_SUFFIX: {{pws-app-suffix}}
+      PWS_API: {{pws-api}}
+      PWS_ORG: {{pws-organization}}
+      PWS_USER: {{deploy-username}}
+      PWS_PWD: {{deploy-password}}
+      PWS_SPACE: {{pws-space}}
+  - task: switch-app-routes
+    file: attendee-service-source/ci/tasks/update-routes.yml
+    params:
+      PWS_APP_SUFFIX: {{pws-app-suffix}}
+      PWS_APP_DOMAIN: {{pws-app-domain}}
+      PWS_API: {{pws-api}}
+      PWS_ORG: {{pws-organization}}
+      PWS_USER: {{deploy-username}}
+      PWS_PWD: {{deploy-password}}
+      PWS_SPACE: {{pws-space}}
+
+- name: smoke-live-test
+  serial: true
+  public: true
+  plan:
+  - get: attendee-service-source
+    trigger: true
+    passed:
+      - deploy-app
+  - task: get-current-app-color
+    file: attendee-service-source/ci/tasks/current-app-get-info.yml
+    params:
+      PWS_APP_SUFFIX: {{pws-app-suffix}}
+      PWS_API: {{pws-api}}
+      PWS_ORG: {{pws-organization}}
+      PWS_USER: {{deploy-username}}
+      PWS_PWD: {{deploy-password}}
+      PWS_SPACE: {{pws-space}}
+  - task: run-smoke-tests
+    file: attendee-service-source/ci/tasks/smoke-test.yml
+    params:
+      ATTENDEE_SERVICE_URL: {{pwd-app-url}}
+      PWS_APP_SUFFIX: {{pws-app-suffix}}
+      PWS_APP_DOMAIN: {{pws-app-domain}}
