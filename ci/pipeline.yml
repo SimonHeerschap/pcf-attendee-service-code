@@ -51,8 +51,6 @@ jobs:
     file: attendee-service-source/ci/tasks/app-manifest-prep.yml
     params:
       PWS_APP_SUFFIX: {{pws-app-suffix}}
-  - task: package
-    file: attendee-service-source/ci/tasks/package.yml
   - put: PWS
     params:
       manifest: app-manifest-output/manifest.yml
