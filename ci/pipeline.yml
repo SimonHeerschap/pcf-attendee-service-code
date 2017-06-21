@@ -115,7 +115,7 @@ jobs:
   - get: attendee-service-source
     trigger: true
     passed:
-      - deploy-app
+      - promote-new-version
   - task: get-current-app-color
     file: attendee-service-source/ci/tasks/current-app-get-info.yml
     params:
